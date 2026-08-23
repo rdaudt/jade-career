@@ -2,7 +2,14 @@ import { eq } from 'drizzle-orm'
 import { getDb } from '@/db/client'
 import { profile, type Profile, type NewProfile } from '@/db/schema'
 
-type ProfileInput = Omit<NewProfile, 'id' | 'updatedAt'>
+type ProfileInput = {
+  location: string
+  openToLocations: string
+  interestTags: string
+  exclusionTags: string
+  careerStage: string
+  currentRole: string
+}
 
 export function shapeProfileForUpsert(input: ProfileInput): NewProfile {
   return {
