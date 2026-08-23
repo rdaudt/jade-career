@@ -1,11 +1,14 @@
 import { getFeedItemsByType } from '@/lib/feedItems'
 import { FeedItemCard } from '@/app/components/FeedItemCard'
+import { listContactsByFollowUp } from '@/lib/contacts'
+import { ContactsList } from './ContactsList'
 
 export default async function NetworkPage() {
-  const [people, orgs, events] = await Promise.all([
+  const [people, orgs, events, contacts] = await Promise.all([
     getFeedItemsByType('person_suggestion'),
     getFeedItemsByType('org_signal'),
     getFeedItemsByType('event'),
+    listContactsByFollowUp(),
   ])
 
   return (
@@ -33,6 +36,8 @@ export default async function NetworkPage() {
           {events.length === 0 && <p className="text-sm text-gray-500">No new events yet.</p>}
         </div>
       </section>
+
+      <ContactsList contacts={contacts} />
     </main>
   )
 }
