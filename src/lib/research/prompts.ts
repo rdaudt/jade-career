@@ -25,7 +25,9 @@ export function buildResearchPrompt(
     `Her interests: ${profile.interestTags}.`,
     `Explicitly NOT relevant to her: ${profile.exclusionTags}.`,
     `Task (${type}): ${TASK_GUIDANCE[type]}`,
-    'For each result, return title, a one-sentence summary, the source URL, the source name, the publish date if known, and location relevance (Victoria, Lower Mainland, BC-wide, or national).',
+    'Use the web_search tool to find real, current results. After searching, respond with ONLY a JSON array (no prose) where each element has these exact keys:',
+    '  title (string), summary (one sentence, string), url (the actual URL from search results), sourceName (string), publishedAt (ISO 8601 datetime or null), locationRelevance ("Victoria" | "Lower Mainland" | "BC-wide" | "national")',
+    'Only include items with real URLs you found via search. Do not fabricate URLs.',
   ]
   if (recentTitles.length > 0) {
     lines.push(`Do not repeat these already-known items: ${recentTitles.join('; ')}`)

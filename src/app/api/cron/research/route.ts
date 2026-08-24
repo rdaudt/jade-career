@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateObject } from 'ai'
-import { gateway } from '@ai-sdk/gateway'
-import { z } from 'zod'
+import { generateText, stepCountIs } from 'ai'
+import { anthropic } from '@ai-sdk/anthropic'
 import { getDb } from '@/db/client'
 import { feedItems, pipelineRuns } from '@/db/schema'
 import type { FeedItem } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { getProfile } from '@/lib/profile'
 import { shapeFeedItem } from '@/lib/research/shape'
-import { researchItemSchema } from '@/lib/research/schemas'
 import { buildResearchPrompt } from '@/lib/research/prompts'
 
 const TASK_TYPES: FeedItem['type'][] = [
@@ -20,7 +18,16 @@ const TASK_TYPES: FeedItem['type'][] = [
   'person_suggestion',
 ]
 
-const resultSchema = z.object({ items: z.array(researchItemSchema) })
+function extractJsonArray(text: string): unknown[] {
+  const match = text.match(/```json\s*([\s\S]*?)```/) ?? text.match(/(\[[\s\S]*\])/)
+  const raw = match ? match[1] : text
+  try {
+    const parsed = JSON.parse(raw.trim())
+    return Array.isArray(parsed) ? parsed : parsed?.items ?? []
+  } catch {
+    return []
+  }
+}
 
 async function runTask(type: FeedItem['type']) {
   const db = getDb()
@@ -44,14 +51,16 @@ async function runTask(type: FeedItem['type']) {
     .limit(20)
 
   try {
-    const { object } = await generateObject({
-      model: gateway('anthropic/claude-sonnet-4.5'),
-      schema: resultSchema,
+    const { text } = await generateText({
+      model: anthropic('claude-opus-4-8'),
+      tools: { web_search: anthropic.tools.webSearch_20260209() },
+      stopWhen: stepCountIs(10),
       prompt: buildResearchPrompt(profile, type, recent.map((r) => r.title)),
     })
 
+    const items = extractJsonArray(text)
     let inserted = 0
-    for (const raw of object.items) {
+    for (const raw of items) {
       const row = shapeFeedItem(raw, type)
       if (!row) continue
       const existing = await db
