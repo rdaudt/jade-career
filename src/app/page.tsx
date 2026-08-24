@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getFeedItemsByType } from '@/lib/feedItems'
 import { listContactsByFollowUp } from '@/lib/contacts'
 import { getLatestRunPerType, isStale } from '@/lib/pipelineRuns'

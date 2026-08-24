@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getFeedItemsByType } from '@/lib/feedItems'
 import { FeedItemCard } from '@/app/components/FeedItemCard'
 

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getProfile } from '@/lib/profile'
 import { saveProfileAction } from './actions'
 
